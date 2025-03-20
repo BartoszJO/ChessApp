@@ -44,6 +44,27 @@ public class Piece {
         return row * Board.SQUARE_SIZE;
     }
 
+    public int getCol(int x) {
+        return (x + Board.HALF_SQUARE_SIZE) / Board.SQUARE_SIZE;
+    }
+
+    // Koretka pozycji na taką, gdzie znajduje się kursor, a nie lewy górny róg
+    public int getRow(int y) {
+        return (y + Board.HALF_SQUARE_SIZE) / Board.SQUARE_SIZE;
+    }
+
+    public void updatePosition() {
+        x = getX(col);
+        y = getY(row);
+        // Potwierdzony ruch, aktualizujemy (figura została przeniesiona na nowe pole)
+        preCol = getCol(x);
+        preRow = getRow(y);
+    }
+
+    public boolean canMove(int targetCol, int targetRow) {
+        return false;
+    }
+
     public void draw(Graphics2D g2) {
         g2.drawImage(image, x, y, Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
     }
