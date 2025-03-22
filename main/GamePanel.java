@@ -37,6 +37,10 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int BLACK = 1;
     int currentColor = WHITE; // Białe zawsze zaczynają partię  
 
+    // Booleans
+    boolean canMove;
+    boolean validSquare;
+
     public GamePanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.black);
@@ -72,7 +76,8 @@ public class GamePanel extends JPanel implements Runnable {
         pieces.add(new Bishop(WHITE, 2, 7));
         pieces.add(new Bishop(WHITE, 5, 7));
         pieces.add(new Queen(WHITE, 3, 7));
-        pieces.add(new King(WHITE, 4, 7));
+        // pieces.add(new King(WHITE, 4, 7));
+        pieces.add(new King(WHITE, 4, 4));
 
         // Drużyna czarnych
         pieces.add(new Pawn(BLACK, 0, 1));
@@ -152,8 +157,12 @@ public class GamePanel extends JPanel implements Runnable {
         if (mouse.pressed == false) {
             // Puszczenie po trzymaniu figury 
             if (activeP != null) {
-                activeP.updatePosition();
-                activeP = null;
+                if (validSquare) {
+                    activeP.updatePosition();
+                } else {
+                    activeP.resetPosition();
+                    activeP = null;
+                }
             }
         }
     }
@@ -161,11 +170,22 @@ public class GamePanel extends JPanel implements Runnable {
     // Symulujemy, ponieważ nie znamy jeszcze przebiegu wydarzeń
     // Gracz może przesunąć figurę lub na przykład zbić figurę przeciwnika
     private void simulate() {
+
+        canMove = false;
+        validSquare = false;
+
         // Jeśli figura jest trzymana, aktualizuj jej pozycję
         activeP.x = mouse.x - Board.HALF_SQUARE_SIZE;
         activeP.y = mouse.y - Board.HALF_SQUARE_SIZE;
         activeP.col = activeP.getCol(activeP.x);
         activeP.row = activeP.getRow(activeP.y);
+
+        // Sprawdzenie, czy figura znajduje się nad możliwym do postawienia miejscem
+        if(activeP.canMove(activeP.col, activeP.row)) {
+            canMove = true;
+            validSquare = true;
+        }
+
     }
 
     // Metoda, która pozwala na rysowanie obiektów na panelu
@@ -183,12 +203,14 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (activeP != null ) {
-            // Koloruje kwadrat pod aktywną figurą (kursorem, który trzyma figurę) na biało (dynamicznie)
-            g2.setColor(Color.white);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-            g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE, Board.SQUARE_SIZE,
-                    Board.SQUARE_SIZE);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            if (canMove) {
+                // Koloruje kwadrat pod aktywną figurą (kursorem, który trzyma figurę) na biało TYLKO wtedy, gdy figura może znaleźć się na danym polu
+                g2.setColor(Color.white);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE, Board.SQUARE_SIZE,
+                        Board.SQUARE_SIZE);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            }            
 
             // Rysujemy aktywną figurę na końcu, żeby nie została zakryta przez planszę albo pokolorowany kwardat
             activeP.draw(g2);
